@@ -1,0 +1,4 @@
+\.venv
+\generated_data
+*.xlsx
+.idea
