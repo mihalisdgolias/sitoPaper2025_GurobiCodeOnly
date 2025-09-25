@@ -2,3 +2,7 @@
 \generated_data
 *.xlsx
 \.idea
+\datagenValidation
+\simulation_results_linear_cost
+\linear_optimization_analysis
+\marginal_cost_analysis

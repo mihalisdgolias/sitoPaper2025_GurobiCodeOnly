@@ -108,7 +108,7 @@ warnings.filterwarnings('ignore')
 
 SAVE_PLOTS = True
 SHOW_PLOTS = True
-numOfTerminalsAtPort = 4
+numOfTerminalsAtPort = 10
 # weekly terminal capacity
 TERMINAL_CAPACITY_MIN = 25000000 / (52 * numOfTerminalsAtPort)
 TERMINAL_CAPACITY_MAX = 35000000 / (52 * numOfTerminalsAtPort)
@@ -124,8 +124,8 @@ VC_RANGES = {
 }
 
 # Simulation parameters
-TERMINALS_TO_SIMULATE = [3]  # Number of terminals to simulate
-NUM_VESSEL_INSTANCES = 1  # Number of vessel assignment instances per scenario
+TERMINALS_TO_SIMULATE = [4]  # Number of terminals to simulate
+NUM_VESSEL_INSTANCES = 5  # Number of vessel assignment instances per scenario
 CI_RATES = [0]  # CI rates to test (percentage of vessels with CI capability)
 VESSEL_VOLUME_MIN = 850  # TEU
 VESSEL_VOLUME_MAX = 5000  # TEU
