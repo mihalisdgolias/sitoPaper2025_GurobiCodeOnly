@@ -20,3 +20,40 @@
 2025-09-27 15:20:42,141 - INFO - Gurobi optimization MAXMIN completed successfully
 2025-09-27 15:20:42,157 - INFO - Current state validation complete. All constraints satisfied.
 2025-09-27 15:20:42,157 - INFO - Running Gurobi optimization with pricing mechanism: marginal_cost
+2025-09-27 15:24:45,458 - INFO - === STARTING GUROBI UNIFIED SIMULATION ===
+2025-09-27 15:24:45,470 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 15:24:45,471 - INFO - Running Gurobi optimization with pricing mechanism: marginal_profit
+2025-09-27 15:24:45,473 - INFO - Set parameter Username
+2025-09-27 15:24:45,473 - INFO - Set parameter LicenseID to value 2692892
+2025-09-27 15:24:45,475 - INFO - Academic license - for non-commercial use only - expires 2026-07-31
+2025-09-27 15:24:46,114 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 15:24:49,046 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 15:24:49,064 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 15:24:49,064 - INFO - Running Gurobi optimization with pricing mechanism: marginal_cost
+2025-09-27 15:26:56,430 - WARNING - Gurobi optimization MAXPROF failed with status: 11
+2025-09-27 15:31:23,763 - INFO - === STARTING GUROBI UNIFIED SIMULATION ===
+2025-09-27 15:31:23,763 - INFO - Testing Subsidies: [0]
+2025-09-27 15:31:23,763 - INFO - Testing Pricing Mechanisms: ['optimized']
+2025-09-27 15:31:23,775 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 15:31:23,775 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 15:31:23,778 - INFO - Set parameter Username
+2025-09-27 15:31:23,778 - INFO - Set parameter LicenseID to value 2692892
+2025-09-27 15:31:23,779 - INFO - Academic license - for non-commercial use only - expires 2026-07-31
+2025-09-27 15:31:25,227 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 15:31:30,139 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 15:34:19,916 - INFO - === STARTING GUROBI UNIFIED SIMULATION ===
+2025-09-27 15:34:19,917 - INFO - Testing Subsidies: [0]
+2025-09-27 15:34:19,917 - INFO - Testing Pricing Mechanisms: ['optimized']
+2025-09-27 15:34:19,928 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 15:34:19,928 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 15:34:19,930 - INFO - Set parameter Username
+2025-09-27 15:34:19,931 - INFO - Set parameter LicenseID to value 2692892
+2025-09-27 15:34:19,932 - INFO - Academic license - for non-commercial use only - expires 2026-07-31
+2025-09-27 15:34:21,390 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 15:34:26,588 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 15:34:26,608 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 15:34:26,609 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 15:34:27,992 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 15:34:32,328 - WARNING - Gurobi optimization MAXMIN failed with status: 11
+2025-09-27 15:34:32,341 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 15:34:32,341 - INFO - Running Gurobi optimization with pricing mechanism: optimized
