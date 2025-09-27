@@ -1207,3 +1207,251 @@
 2025-09-27 20:11:01,419 - INFO - Gurobi optimization MAXMIN completed successfully
 2025-09-27 20:11:01,434 - INFO - Current state validation complete. All constraints satisfied.
 2025-09-27 20:11:01,435 - INFO - Running Gurobi optimization with pricing mechanism: marginal_cost
+2025-09-27 20:15:03,956 - INFO - === STARTING GUROBI UNIFIED SIMULATION ===
+2025-09-27 20:15:03,957 - INFO - Testing Subsidies: [  0  50 100]
+2025-09-27 20:15:03,957 - INFO - Testing Pricing Mechanisms: ['optimized']
+2025-09-27 20:15:03,976 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:15:03,976 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:15:03,979 - INFO - Set parameter Username
+2025-09-27 20:15:03,979 - INFO - Set parameter LicenseID to value 2692892
+2025-09-27 20:15:03,981 - INFO - Academic license - for non-commercial use only - expires 2026-07-31
+2025-09-27 20:15:08,137 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:15:14,345 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:15:14,377 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:15:14,378 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:15:18,574 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:15:25,195 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:15:25,226 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:15:25,227 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:15:29,562 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:15:36,078 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:15:36,111 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:15:36,112 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:15:40,431 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:15:46,837 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:15:46,870 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:15:46,871 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:15:52,624 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:16:03,485 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:16:03,535 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:16:03,535 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:16:09,319 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:16:19,767 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:16:19,815 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:16:19,815 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:16:25,565 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:16:36,515 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:16:36,567 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:16:36,567 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:16:42,282 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:16:52,969 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:16:53,010 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:16:53,010 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:17:00,202 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:17:09,006 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:17:09,051 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:17:09,051 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:17:16,824 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:17:25,568 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:17:25,627 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:17:25,628 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:17:33,698 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:17:42,316 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:17:42,372 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:17:42,372 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:17:50,090 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:18:00,726 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:18:00,779 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:18:00,779 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:18:06,568 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:18:16,599 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:18:16,640 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:18:16,641 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:18:21,048 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:18:27,771 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:18:27,807 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:18:27,807 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:18:32,288 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:18:39,948 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:18:39,995 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:18:39,995 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:18:45,757 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:18:56,609 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:18:56,677 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:18:56,677 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:19:04,767 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:19:13,701 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:19:13,749 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:19:13,749 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:19:21,799 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:19:30,662 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:19:30,712 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:19:30,712 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:19:38,710 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:19:48,597 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:19:48,654 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:19:48,654 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:19:54,377 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:20:04,776 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:20:04,827 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:20:04,828 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:20:10,495 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:20:21,422 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:20:21,476 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:20:21,477 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:20:26,876 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:20:33,812 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:20:33,845 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:20:33,845 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:20:38,248 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:20:46,690 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:20:46,747 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:20:46,748 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:20:54,680 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:21:03,445 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:21:03,489 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:21:03,490 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:21:09,801 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:21:13,977 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:21:14,021 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:21:14,021 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:21:18,154 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:21:24,433 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:21:24,477 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:21:24,478 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:21:28,508 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:21:32,270 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:21:32,307 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:21:32,308 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:21:38,949 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:21:42,682 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:21:42,722 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:21:42,722 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:21:46,846 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:21:52,829 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:21:52,871 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:21:52,871 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:21:56,989 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:22:00,988 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:22:01,037 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:22:01,038 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:22:06,926 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:22:10,889 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:22:10,930 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:22:10,930 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:22:14,860 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:22:18,622 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:22:18,657 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:22:18,657 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:22:24,705 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:22:28,534 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:22:28,585 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:22:28,585 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:22:32,534 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:22:38,104 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:22:38,171 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:22:38,171 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:22:42,020 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:22:45,599 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:22:45,652 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:22:45,653 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:22:51,744 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:22:55,621 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:22:55,665 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:22:55,666 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:22:59,717 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:23:03,685 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:23:03,719 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:23:03,720 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:23:09,578 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:23:12,556 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:23:12,585 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:23:12,585 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:23:15,867 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:23:18,824 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:23:18,853 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:23:18,853 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:23:23,462 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:23:26,400 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:23:26,435 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:23:26,435 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:23:29,357 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:23:32,173 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:23:32,202 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:23:32,202 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:23:35,251 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:23:38,181 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:23:38,211 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:23:38,211 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:23:41,277 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:23:45,038 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:23:45,087 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:23:45,087 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:23:49,139 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:23:54,822 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:23:54,888 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:23:54,888 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:23:58,865 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:24:02,624 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:24:02,661 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:24:02,662 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:24:06,612 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:24:12,758 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:24:12,795 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:24:12,795 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:24:16,867 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:24:20,754 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:24:20,792 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:24:20,792 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:24:27,236 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:24:30,989 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:24:31,034 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:24:31,034 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:24:32,033 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:24:36,096 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:24:36,124 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:24:36,124 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:24:37,113 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:24:42,697 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:24:42,740 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:24:42,740 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:24:43,735 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:24:47,500 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:24:47,534 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:24:47,534 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:24:48,487 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:24:54,091 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:24:54,165 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:24:54,165 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:24:55,367 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:24:59,168 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:24:59,202 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:24:59,202 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:25:00,259 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:25:04,011 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:25:04,051 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:25:04,052 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:25:05,080 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:25:11,024 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:25:11,052 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:25:11,053 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:25:12,067 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:25:15,977 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:25:16,007 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:25:16,008 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:25:16,972 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:25:20,767 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:25:20,803 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:25:20,803 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:25:21,751 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:25:27,547 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:25:27,576 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:25:27,576 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:25:28,528 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:25:33,621 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 20:25:33,643 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:25:33,644 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 20:25:34,285 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 20:25:35,836 - WARNING - Gurobi optimization MAXMIN failed with status: 11
+2025-09-27 20:25:35,854 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 20:25:35,854 - INFO - Running Gurobi optimization with pricing mechanism: optimized

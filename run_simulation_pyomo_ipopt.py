@@ -116,8 +116,9 @@ GLOBAL_SCENARIO_CONFIG = {
     #'subsidies': np.array([0]),
 
     # Pricing mechanisms tested
-    'pricing_mechanisms': ['marginal_profit', 'marginal_cost', 'optimized'],
-    # this was for testing 'pricing_mechanisms': [ 'optimized'],
+    #'pricing_mechanisms': ['marginal_profit', 'marginal_cost', 'optimized'],
+    # this was for testing
+    'pricing_mechanisms': [ 'optimized'],
 
 }
 
