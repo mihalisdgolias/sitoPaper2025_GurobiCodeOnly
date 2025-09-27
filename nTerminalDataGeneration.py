@@ -124,9 +124,9 @@ VC_RANGES = {
 }
 
 # Simulation parameters
-TERMINALS_TO_SIMULATE = [3]  # Number of terminals to simulate
-NUM_VESSEL_INSTANCES = 5  # Number of vessel assignment instances per scenario
-CI_RATES = [0]  # CI rates to test (percentage of vessels with CI capability)
+TERMINALS_TO_SIMULATE = [3, 4, 5]  # Number of terminals to simulate
+NUM_VESSEL_INSTANCES = 10  # Number of vessel assignment instances per scenario
+CI_RATES = [0, .2, .4, .6]  # CI rates to test (percentage of vessels with CI capability)
 VESSEL_VOLUME_MIN = 850  # TEU
 VESSEL_VOLUME_MAX = 5000  # TEU
 

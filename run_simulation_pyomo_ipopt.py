@@ -111,12 +111,13 @@ from tqdm import tqdm
 
 GLOBAL_SCENARIO_CONFIG = {
     # Subsidies tested in $/TEU
-    #'subsidies': np.array([0, 50, 100]),
-    'subsidies': np.array([0]),
+    'subsidies': np.array([0, 50, 100]),
+    # this was for testing
+    #'subsidies': np.array([0]),
 
     # Pricing mechanisms tested
-   # 'pricing_mechanisms': ['marginal_profit', 'marginal_cost', 'optimized'],
-    'pricing_mechanisms': [ 'optimized'],
+    'pricing_mechanisms': ['marginal_profit', 'marginal_cost', 'optimized'],
+    # this was for testing 'pricing_mechanisms': [ 'optimized'],
 
 }
 
@@ -509,7 +510,7 @@ def vessel_based_opt_gurobi(input_data_ves: Dict[str, Any], pricing_mechanism: s
                             production_cost[i] - cost_before[i]), name=f"C_P_total_{i}")
 
                 # Profit Stability
-                model.addConstr(profit_terminal[i] >= 0.99 * profit_before[i], name=f"C_P_stab_{i}")
+                model.addConstr(profit_terminal[i] >=  profit_before[i], name=f"C_P_stab_{i}")
 
             # Global Constraints
             for j in range(num_vessels):
