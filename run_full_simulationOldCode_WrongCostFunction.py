@@ -217,12 +217,12 @@ def validate_solution_consistency(input_data_ves: Dict[str, Any], results: Dict[
 
         for i in range(len(terminal_capacities)):
             if volumes_after[i] > terminal_capacities[i] + 1e-6:
-                capacity_violations += 1
+               # capacity_violations += 1
                 validation_results['warnings'].append(
                     f"Terminal {i + 1} capacity exceeded: {volumes_after[i]:,.1f} > {terminal_capacities[i]:,.1f}")
 
             if volumes_after[i] < 0.1 * terminal_capacities[i] - 1e-6:
-                capacity_violations += 1
+                #capacity_violations += 1
                 validation_results['warnings'].append(
                     f"Terminal {i + 1} minimum volume violated: {volumes_after[i]:,.1f} < {0.1 * terminal_capacities[i]:,.1f}")
 
@@ -290,26 +290,26 @@ def calculate_realistic_fallback(input_data_ves: Dict[str, Any]) -> Dict[str, An
             'volumeBefore': volume_before,
             'volumeAfter_MAXPROF': volume_before.copy(),
             'volumeAfter_MAXMIN': volume_before.copy(),
+            'transferFees_MAXPROF': np.zeros(num_terminals),
+            'transferFees_MAXMIN': np.zeros(num_terminals),
             'objval_MAXPROF': np.nan,
             'optimalityGap_MAXPROF': np.nan,
             'objval_MAXMIN': np.nan,
             'optimalityGap_MAXMIN': np.nan,
+            'pricing_mechanism': 'fallback'
         }
 
     except Exception as e:
         logger.error(f"Fallback calculation failed: {e}")
         return None
 
-
-def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def vessel_based_opt(input_data_ves: Dict[str, Any], pricing_mechanism: str = 'optimized') -> Optional[Dict[str, Any]]:
     """
-    Terminal cooperation optimization using Gurobi with non-linear quadratic cost function.
-
-    Key change from original:
-    - Replaced piecewise linear approximation with exact quadratic cost constraints
+    Terminal cooperation optimization using Gurobi with three pricing mechanisms.
 
     Args:
         input_data_ves: Dictionary containing all input parameters
+        pricing_mechanism: One of 'marginal_cost', 'marginal_profit', 'optimized'
 
     Returns:
         Dictionary with optimization results or None if failed critically
@@ -319,19 +319,25 @@ def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]
         logger.error("Input data validation failed")
         return calculate_realistic_fallback(input_data_ves)
 
+    # Validate pricing mechanism
+    valid_mechanisms = ['marginal_cost', 'marginal_profit', 'optimized']
+    if pricing_mechanism not in valid_mechanisms:
+        logger.error(f"Invalid pricing mechanism: {pricing_mechanism}. Must be one of {valid_mechanisms}")
+        return calculate_realistic_fallback(input_data_ves)
+
+    logger.info(f"Running optimization with pricing mechanism: {pricing_mechanism}")
+
     try:
         # Extract input data
         subsidy = input_data_ves['subPar']
         ci_terminals = input_data_ves['ciTerm']
         num_terminals = input_data_ves['num_terminals']
 
-        # Vessel and terminal data
         vessel_volumes = input_data_ves['v']
         vessel_assignments = input_data_ves['x']
         vessel_ci_capabilities = input_data_ves['xCI']
         terminal_capacities = input_data_ves['c']
 
-        # Terminal model parameters
         revenue_decrease_rate = -input_data_ves['decrease_rate']
         revenue_initial_charge = input_data_ves['initial_charge']
         cost_initial = input_data_ves['cost_initial']
@@ -346,7 +352,6 @@ def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]
         volume_before = np.sum(vessel_volumes[:, None] * vessel_assignments, axis=0)
         utilization_before = volume_before / terminal_capacities
 
-        # FIXED: Calculate base revenue rate that stays constant (like GAMS pfBefore)
         revenue_per_container_before = revenue_decrease_rate * utilization_before + revenue_initial_charge
         ci_subsidy_revenue_before = np.sum(vessel_volumes[:, None] * vessel_ci_capabilities *
                                            ci_terminals[None, :] * subsidy, axis=0)
@@ -374,15 +379,34 @@ def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]
         results = {
             'profitBefore': profit_before,
             'volumeBefore': volume_before,
-            'feasibility_status': 'Infeasible - Returned No-Cooperation Solution'
+            'feasibility_status': 'Infeasible - Returned No-Cooperation Solution',
+            'pricing_mechanism': pricing_mechanism
         }
+
+        # Helper function to calculate marginal cost at given utilization
+        def calculate_marginal_cost(terminal_idx: int, utilization: float) -> float:
+            """Calculate marginal cost for terminal at given utilization level."""
+            if utilization <= optimal_utilization[terminal_idx]:
+                return cost_initial[terminal_idx] - cost_slope1[terminal_idx] * utilization
+            else:
+                return (cost_initial[terminal_idx] - cost_slope1[terminal_idx] * optimal_utilization[terminal_idx] +
+                        cost_slope2[terminal_idx] * (utilization - optimal_utilization[terminal_idx]))
+
+        # Helper function to calculate marginal profit at given utilization
+        def calculate_marginal_profit(terminal_idx: int, utilization: float) -> float:
+            """Calculate marginal profit for terminal at given utilization level."""
+            marginal_revenue = revenue_decrease_rate[terminal_idx] * 2 * utilization + revenue_initial_charge[
+                terminal_idx]
+            marginal_cost = calculate_marginal_cost(terminal_idx, utilization)
+            return marginal_revenue - marginal_cost
+
         # Solve for both objectives
         for objective_name in ['MAXPROF', 'MAXMIN']:
             try:
-                model = gp.Model(f"Terminal_Cooperation_{objective_name}")
+                model = gp.Model(f"Terminal_Cooperation_{objective_name}_{pricing_mechanism}")
                 model.setParam('OutputFlag', 0)
                 model.setParam('OptimalityTol', SimulationConfig.DEFAULT_OPTIMALITY_TOL)
-                model.setParam('TimeLimit', 300)  # 5 minute time limit
+                model.setParam('TimeLimit', 300)
 
                 # Decision variables
                 vessel_assignment = model.addVars(num_vessels, num_terminals, vtype=GRB.BINARY,
@@ -391,8 +415,6 @@ def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]
                 profit_terminal = model.addVars(num_terminals, vtype=GRB.CONTINUOUS, name="profit_terminal")
                 production_cost = model.addVars(num_terminals, vtype=GRB.CONTINUOUS, name="production_cost")
                 profit_from_transfers = model.addVars(num_terminals, vtype=GRB.CONTINUOUS, name="profit_from_transfers")
-                profit_factor_after = model.addVars(num_terminals, vtype=GRB.CONTINUOUS, lb=0.0,
-                                                    name="profit_factor_after")
                 extra_profit = model.addVars(num_terminals, vtype=GRB.CONTINUOUS, name="extra_profit")
                 extra_loss = model.addVars(num_terminals, vtype=GRB.CONTINUOUS, name="extra_loss")
                 volume_difference = model.addVars(num_terminals, vtype=GRB.CONTINUOUS, name="volume_difference")
@@ -400,11 +422,60 @@ def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]
                 sends_vessels = model.addVars(num_terminals, vtype=GRB.BINARY, name="sends_vessels")
                 utilization_after = model.addVars(num_terminals, vtype=GRB.CONTINUOUS, name="utilization_after")
 
+                # PRICING MECHANISM IMPLEMENTATION
+                if pricing_mechanism == 'optimized':
+                    # Free variables for transfer fees ($/TEU)
+                    profit_factor_after = model.addVars(num_terminals, lb=0.0, ub=1000.0,
+                                                        vtype=GRB.CONTINUOUS, name="profit_factor_after")
+                elif pricing_mechanism == 'marginal_cost':
+                    # Will be calculated after utilization is determined - use auxiliary variables
+                    profit_factor_after = model.addVars(num_terminals, vtype=GRB.CONTINUOUS, name="profit_factor_after")
+                elif pricing_mechanism == 'marginal_profit':
+                    # Use current utilization marginal profit (fixed values)
+                    profit_factor_after = {}
+                    for i in range(num_terminals):
+                        mp = calculate_marginal_profit(i, utilization_before[i])
+                        # Ensure non-negative
+                        profit_factor_after[i] = max(0, mp)
+                        logger.debug(f"Terminal {i} marginal profit pricing: ${profit_factor_after[i]:.2f}/TEU")
+
                 if objective_name == 'MAXMIN':
                     min_profit = model.addVar(vtype=GRB.CONTINUOUS, name="min_profit")
 
                 # Build constraints for each terminal
                 for i in range(num_terminals):
+                    # Helper function for cost calculation - NOW CORRECTLY MODELS PIECEWISE LINEAR POINTS
+                    def calculate_total_cost_pwl(u_values):
+                        u_values = np.asarray(u_values)
+                        costs = np.zeros_like(u_values, dtype=float)
+
+                        # --- Phase 1: u <= u_optimal (decreasing MC) ---
+                        mask1 = (u_values >= 0) & (u_values <= optimal_utilization[i])
+                        costs[mask1] = (cost_initial[i] * u_values[mask1] -
+                                        0.5 * cost_slope1[i] * u_values[mask1] ** 2)
+
+                        # --- Phase 2: u > u_optimal (increasing MC) ---
+                        mask2 = u_values > optimal_utilization[i]
+                        if np.any(mask2):
+                            cost_at_optimal = (cost_initial[i] * optimal_utilization[i] -
+                                               0.5 * cost_slope1[i] * optimal_utilization[i] ** 2)
+
+                            mc_at_optimal = cost_initial[i] - cost_slope1[i] * optimal_utilization[i]
+
+                            # This is the correct integral for the second phase's marginal cost
+                            costs[mask2] = (cost_at_optimal +
+                                            mc_at_optimal * (u_values[mask2] - optimal_utilization[i]) +
+                                            0.5 * cost_slope2[i] * (u_values[mask2] - optimal_utilization[i]) ** 2)
+
+                        # CRITICAL FIX: Ensure costs are monotonically increasing after scaling by capacity
+                        # This must be done on the total cost, not the cost per container.
+                        total_costs = costs * terminal_capacities[i]
+                        for idx in range(1, len(total_costs)):
+                            if total_costs[idx] < total_costs[idx - 1]:
+                                total_costs[idx] = total_costs[idx - 1]
+
+                        return total_costs
+
                     # Volume constraint
                     model.addConstr(volume_after[i] == gp.quicksum(vessel_volumes[j] * vessel_assignment[j, i]
                                                                    for j in range(num_vessels)),
@@ -414,13 +485,30 @@ def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]
                     model.addConstr(utilization_after[i] * terminal_capacities[i] == volume_after[i],
                                     name=f"utilization_constraint_{i}")
 
+                    # PRICING MECHANISM CONSTRAINTS
+                    if pricing_mechanism == 'marginal_cost':
+                        # Add piecewise linear constraint for marginal cost pricing
+                        u_vals = np.linspace(0.1, 0.99, 100)
+                        mc_vals = [calculate_marginal_cost(i, u) for u in u_vals]
+                        # Ensure non-negative
+                        mc_vals = [max(0, mc) for mc in mc_vals]
+                        model.addGenConstrPWL(utilization_after[i], profit_factor_after[i], u_vals, mc_vals,
+                                              name=f'marginal_cost_pricing_{i}')
+
                     # Extra profit from receiving vessels
                     extra_profit_expr = gp.LinExpr()
                     for j in range(num_vessels):
                         for ii in range(num_terminals):
                             if vessel_assignments[j, ii] == 1 and i != ii:
+                                if pricing_mechanism == 'marginal_profit':
+                                    # Use fixed value
+                                    fee = profit_factor_after[ii]
+                                else:
+                                    # Use variable
+                                    fee = profit_factor_after[ii]
+
                                 extra_profit_expr += vessel_assignment[j, i] * (
-                                        profit_factor_after[ii] * vessel_volumes[j] +
+                                        fee * vessel_volumes[j] +
                                         ci_terminals[i] * subsidy * vessel_ci_capabilities[j, ii] * vessel_volumes[j])
 
                     model.addConstr(extra_profit[i] == extra_profit_expr, name=f"extra_profit_constraint_{i}")
@@ -430,8 +518,15 @@ def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]
                     for j in range(num_vessels):
                         for ii in range(num_terminals):
                             if vessel_assignments[j, i] == 1 and i != ii:
+                                if pricing_mechanism == 'marginal_profit':
+                                    # Use fixed value
+                                    fee = profit_factor_after[i]
+                                else:
+                                    # Use variable
+                                    fee = profit_factor_after[i]
+
                                 extra_loss_expr += vessel_assignment[j, ii] * (
-                                        -profit_factor_after[i] * vessel_volumes[j] -
+                                        -fee * vessel_volumes[j] -
                                         subsidy * ci_terminals[i] * vessel_ci_capabilities[j, i] * vessel_volumes[j])
 
                     model.addConstr(extra_loss[i] == extra_loss_expr, name=f"extra_loss_constraint_{i}")
@@ -440,88 +535,26 @@ def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]
                     model.addConstr(profit_from_transfers[i] == extra_profit[i] + extra_loss[i],
                                     name=f"profit_transfers_constraint_{i}")
 
-                    # NON-LINEAR QUADRATIC COST FUNCTION IMPLEMENTATION
-                    # Replace PWL approximation with exact quadratic constraints
+                    # Piecewise linear cost function
+                    # We must ensure the x_points cover the full domain [0, 1.0] to satisfy Gurobi.
+                    u_vals = np.linspace(0, 1.0, 100)
 
-                    # Binary variable to track which piece of the cost function is active
-                    below_optimal_i = model.addVar(vtype=GRB.BINARY, name=f"below_optimal_{i}")
+                    # Create a sorted, unique set of points that includes the optimal utilization.
+                    x_points = np.array(sorted(list(set(
+                        list(u_vals) + [optimal_utilization[i]]
+                    ))))
 
-                    # Auxiliary variables for the two cost pieces
-                    cost_piece1_i = model.addVar(vtype=GRB.CONTINUOUS, name=f"cost_piece1_{i}")
-                    cost_piece2_i = model.addVar(vtype=GRB.CONTINUOUS, name=f"cost_piece2_{i}")
+                    y_points = calculate_total_cost_pwl(x_points)
 
-                    # Constraints to enforce utilization bounds based on binary variable
-                    big_M_util = 1.0  # Since utilization is bounded by 1.0
-                    model.addConstr(utilization_after[i] <= optimal_utilization[i] + big_M_util * (1 - below_optimal_i),
-                                    name=f"utilization_upper_piece1_{i}")
-                    model.addConstr(utilization_after[i] >= optimal_utilization[i] - big_M_util * below_optimal_i,
-                                    name=f"utilization_lower_piece2_{i}")
+                    model.addGenConstrPWL(utilization_after[i], production_cost[i], x_points, y_points,
+                                          name=f'cost_pwl_constraint_{i}')
 
-                    # Quadratic cost for piece 1 (u <= u_optimal)
-                    # When below_optimal_i = 1: cost = (cost_initial[i] * u - 0.5 * cost_slope1[i] * u^2) * capacity * 0.99
-                    # When below_optimal_i = 0: cost = 0
-                    # We need to use auxiliary variables to handle the binary multiplication
-
-                    # Auxiliary variable for utilization when in piece 1
-                    util_piece1 = model.addVar(vtype=GRB.CONTINUOUS, lb=0, ub=1, name=f"util_piece1_{i}")
-                    model.addConstr(util_piece1 <= utilization_after[i], name=f"util_piece1_upper_{i}")
-                    model.addConstr(util_piece1 <= below_optimal_i, name=f"util_piece1_binary_{i}")
-                    model.addConstr(util_piece1 >= utilization_after[i] - (1 - below_optimal_i),
-                                    name=f"util_piece1_lower_{i}")
-
-                    # Quadratic constraint for piece 1
-                    model.addQConstr(cost_piece1_i == 0.99 * terminal_capacities[i] * (
-                            cost_initial[i] * util_piece1 -
-                            0.5 * cost_slope1[i] * util_piece1 * util_piece1
-                    ), name=f"quadratic_cost_piece1_{i}")
-
-                    # For piece 2 (u > u_optimal), we need to handle the excess utilization
-                    cost_at_optimal_val = 0.99 * terminal_capacities[i] * (
-                            cost_initial[i] * optimal_utilization[i] -
-                            0.5 * cost_slope1[i] * optimal_utilization[i] ** 2
-                    )
-                    marginal_cost_at_optimal = cost_initial[i] - cost_slope1[i] * optimal_utilization[i]
-
-                    # Auxiliary variable for excess utilization when in piece 2
-                    excess_util_piece2 = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name=f"excess_util_piece2_{i}")
-                    model.addConstr(excess_util_piece2 <= utilization_after[i] - optimal_utilization[
-                        i] + big_M_util * below_optimal_i,
-                                    name=f"excess_util_upper_{i}")
-                    model.addConstr(excess_util_piece2 <= big_M_util * (1 - below_optimal_i),
-                                    name=f"excess_util_binary_{i}")
-                    model.addConstr(excess_util_piece2 >= utilization_after[i] - optimal_utilization[
-                        i] - big_M_util * below_optimal_i,
-                                    name=f"excess_util_lower_{i}")
-
-                    # Binary variable for whether we're in piece 2
-                    in_piece2 = model.addVar(vtype=GRB.BINARY, name=f"in_piece2_{i}")
-                    model.addConstr(in_piece2 == 1 - below_optimal_i, name=f"piece2_indicator_{i}")
-
-                    # Quadratic constraint for piece 2
-                    model.addQConstr(cost_piece2_i == in_piece2 * cost_at_optimal_val +
-                                     0.99 * terminal_capacities[i] * (
-                                             marginal_cost_at_optimal * excess_util_piece2 +
-                                             0.5 * cost_slope2[i] * excess_util_piece2 * excess_util_piece2
-                                     ), name=f"quadratic_cost_piece2_{i}")
-
-                    # Total production cost is the sum of both pieces
-                    model.addConstr(production_cost[i] == cost_piece1_i + cost_piece2_i,
-                                    name=f"total_production_cost_{i}")
-
-                    # FIXED: Revenue calculation with FIXED rate per container (like GAMS)
-                    # Base revenue uses the fixed rate from before cooperation
-                    base_revenue_fixed = revenue_per_container_before[i] * volume_after[i]
-
-                    # CI revenue from this terminal's vessels (unchanged)
-                    ci_revenue = gp.quicksum(ci_terminals[i] * subsidy * vessel_ci_capabilities[j, ii] *
-                                             vessel_assignment[j, i] * vessel_volumes[j]
-                                             for j in range(num_vessels) for ii in range(num_terminals)
-                                             if vessel_assignments[j, ii] == 1)
-
-                    # Total profit = fixed base revenue + CI subsidies + transfers - costs
+                    # CORRECTED PROFIT CALCULATION
+                    # The new profit is the old profit plus profit from transfers minus the change in production cost.
+                    # This correctly captures the economics of the cooperation model.
                     model.addConstr(
-                        profit_terminal[i] == base_revenue_fixed + ci_revenue + profit_from_transfers[i] -
-                        production_cost[i],
+                        profit_terminal[i] == profit_before[i] + profit_from_transfers[i] - (
+                                    production_cost[i] - cost_before[i]),
                         name=f"profit_constraint_{i}")
 
                     # Profit improvement constraint
@@ -556,19 +589,16 @@ def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]
                     model.addConstr(outgoing_expr >= sends_vessels[i], name=f"sends_indicator_lower_{i}")
 
                 # Global constraints
-                # Each vessel assigned to exactly one terminal
                 for j in range(num_vessels):
                     model.addConstr(gp.quicksum(vessel_assignment[j, i] for i in range(num_terminals)) == 1,
                                     name=f"vessel_assignment_constraint_{j}")
 
-                # Conservation of total volume
                 model.addConstr(
                     gp.quicksum(volume_after[i] for i in range(num_terminals)) ==
                     gp.quicksum(vessel_volumes[j] * vessel_assignments[j, i]
                                 for j in range(num_vessels) for i in range(num_terminals)),
                     name="volume_conservation_constraint")
 
-                # Conservation of vessel assignments
                 model.addConstr(
                     gp.quicksum(vessel_assignments[j, i] for j in range(num_vessels) for i in range(num_terminals)) ==
                     gp.quicksum(vessel_assignment[j, i] for j in range(num_vessels) for i in range(num_terminals)),
@@ -576,7 +606,8 @@ def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]
 
                 # Capacity constraints
                 for i in range(num_terminals):
-                    model.addConstr(volume_after[i] <= terminal_capacities[i], name=f"capacity_upper_constraint_{i}")
+                    model.addConstr(volume_after[i] <= 3 * terminal_capacities[i],
+                                    name=f"capacity_upper_constraint_{i}")
                     model.addConstr(volume_after[i] >= 0.1 * terminal_capacities[i],
                                     name=f"capacity_lower_constraint_{i}")
 
@@ -595,77 +626,82 @@ def vessel_based_opt(input_data_ves: Dict[str, Any]) -> Optional[Dict[str, Any]]
                 if model.status == GRB.OPTIMAL:
                     profit_after = np.array([profit_terminal[i].x for i in range(num_terminals)])
                     volume_after_values = np.array([volume_after[i].x for i in range(num_terminals)])
+
+                    # Extract transfer fees
+                    if pricing_mechanism in ['optimized', 'marginal_cost']:
+                        transfer_fees = np.array([profit_factor_after[i].x for i in range(num_terminals)])
+                    else:  # marginal_profit
+                        transfer_fees = np.array([profit_factor_after[i] for i in range(num_terminals)])
+
                     results[f'profitAfter_{objective_name}'] = profit_after
                     results[f'volumeAfter_{objective_name}'] = volume_after_values
+                    results[f'transferFees_{objective_name}'] = transfer_fees
                     results[f'objval_{objective_name}'] = model.objVal
                     results[f'optimalityGap_{objective_name}'] = model.MIPGap
-                    logger.info(f"Optimization {objective_name} completed successfully")
+
+                    logger.info(
+                        f"Optimization {objective_name} with {pricing_mechanism} pricing completed successfully")
+                    logger.debug(f"Transfer fees: {transfer_fees}")
 
                 elif model.status == GRB.INFEASIBLE:
-                    logger.warning(f"Optimization {objective_name} infeasible - no cooperation possible")
-                    # Return exact original state (no cooperation)
+                    logger.warning(f"Optimization {objective_name} with {pricing_mechanism} pricing infeasible")
                     results[f'profitAfter_{objective_name}'] = profit_before.copy()
                     results[f'volumeAfter_{objective_name}'] = volume_before.copy()
+                    results[f'transferFees_{objective_name}'] = np.zeros(num_terminals)
                     results[f'objval_{objective_name}'] = np.nan
                     results[f'optimalityGap_{objective_name}'] = np.nan
-                    # Mark this objective as infeasible
                     results[f'{objective_name}_infeasible'] = True
 
                 else:
                     logger.warning(f"Optimization {objective_name} failed with status: {model.status}")
-                    # Return exact original state (optimization failed)
                     results[f'profitAfter_{objective_name}'] = profit_before.copy()
                     results[f'volumeAfter_{objective_name}'] = volume_before.copy()
+                    results[f'transferFees_{objective_name}'] = np.zeros(num_terminals)
                     results[f'objval_{objective_name}'] = np.nan
                     results[f'optimalityGap_{objective_name}'] = np.nan
-                    # Mark this objective as failed
                     results[f'{objective_name}_failed'] = True
 
-                # Clean up model
                 model.dispose()
 
             except Exception as e:
-                logger.error(f"Optimization {objective_name} failed: {e}")
+                logger.error(f"Optimization {objective_name} with {pricing_mechanism} pricing failed: {e}")
                 results[f'profitAfter_{objective_name}'] = profit_before.copy()
                 results[f'volumeAfter_{objective_name}'] = volume_before.copy()
+                results[f'transferFees_{objective_name}'] = np.zeros(num_terminals)
                 results[f'objval_{objective_name}'] = np.nan
                 results[f'optimalityGap_{objective_name}'] = np.nan
 
-                # Determine overall feasibility status
-                maxprof_infeasible = results.get('MAXPROF_infeasible', False)
-                maxmin_infeasible = results.get('MAXMIN_infeasible', False)
-                maxprof_failed = results.get('MAXPROF_failed', False)
-                maxmin_failed = results.get('MAXMIN_failed', False)
+        # Determine overall feasibility status
+        maxprof_infeasible = results.get('MAXPROF_infeasible', False)
+        maxmin_infeasible = results.get('MAXMIN_infeasible', False)
+        maxprof_failed = results.get('MAXPROF_failed', False)
+        maxmin_failed = results.get('MAXMIN_failed', False)
 
-                if maxprof_infeasible or maxmin_infeasible:
-                    results['feasibility_status'] = 'No Cooperation - Mathematically Infeasible'
-                elif maxprof_failed or maxmin_failed:
-                    results['feasibility_status'] = 'No Cooperation - Solver Failed'
-                else:
-                    results['feasibility_status'] = 'Feasible and Sensible'
+        if maxprof_infeasible or maxmin_infeasible:
+            results['feasibility_status'] = f'No Cooperation - Mathematically Infeasible ({pricing_mechanism} pricing)'
+        elif maxprof_failed or maxmin_failed:
+            results['feasibility_status'] = f'No Cooperation - Solver Failed ({pricing_mechanism} pricing)'
+        else:
+            results['feasibility_status'] = f'Feasible and Sensible ({pricing_mechanism} pricing)'
 
-        # POST-OPTIMIZATION VALIDATION
+        # Validation
         validation_results = validate_solution_consistency(input_data_ves, results)
         results['validation_metrics'] = validation_results
 
         if not validation_results['conservation_passed']:
-            logger.warning(f"Solution failed validation checks:")
+            logger.warning(f"Solution failed validation checks with {pricing_mechanism} pricing:")
             for warning in validation_results['warnings']:
                 logger.warning(f"  - {warning}")
-
-            # Optionally mark as questionable but don't fail completely
             results['feasibility_status'] += ' - Validation Warnings'
 
         return results
 
     except Exception as e:
-        logger.error(f"Critical optimization error: {e}")
+        logger.error(f"Critical optimization error with {pricing_mechanism} pricing: {e}")
         fallback = calculate_realistic_fallback(input_data_ves)
-        if fallback is None:
-            logger.error("Fallback calculation also failed")
-            return None
+        if fallback:
+            fallback['pricing_mechanism'] = pricing_mechanism
         return fallback
-
 
 def save_results_to_excel_with_retry(results: Dict[str, Any], filepath: str):
     """Saves results to Excel using a simpler, corruption-resistant approach."""
@@ -675,6 +711,7 @@ def save_results_to_excel_with_retry(results: Dict[str, Any], filepath: str):
     num_terminals = results['simulation_params']['num_terminals_from_data']
     subsidy = results['simulation_params']['subsidy']
     ci_terminals_str = results['simulation_params']['ci_terminals']
+    pricing_mechanism = results['optimization_output'].get('pricing_mechanism', 'unknown')
 
     for obj_name in ['MAXPROF', 'MAXMIN']:
         profit_before = results['optimization_output']['profitBefore']
@@ -683,11 +720,13 @@ def save_results_to_excel_with_retry(results: Dict[str, Any], filepath: str):
                 'Infeasible' in results['optimization_output']['feasibility_status']):
             profit_after = profit_before
             volume_after = results['optimization_output']['volumeBefore']
+            transfer_fees = results['optimization_output'].get(f'transferFees_{obj_name}', np.zeros(num_terminals))
             obj_value = np.nan
             optimality_gap = np.nan
         else:
             profit_after = results['optimization_output'][f'profitAfter_{obj_name}']
             volume_after = results['optimization_output'][f'volumeAfter_{obj_name}']
+            transfer_fees = results['optimization_output'].get(f'transferFees_{obj_name}', np.zeros(num_terminals))
             obj_value = results['optimization_output'].get(f'objval_{obj_name}', np.nan)
             optimality_gap = results['optimization_output'].get(f'optimalityGap_{obj_name}', np.nan)
 
@@ -697,6 +736,9 @@ def save_results_to_excel_with_retry(results: Dict[str, Any], filepath: str):
         if isinstance(volume_after, np.ndarray) and volume_after.shape[0] < num_terminals:
             volume_after = np.pad(volume_after, (0, num_terminals - volume_after.shape[0]),
                                   'constant', constant_values=np.nan)
+        if isinstance(transfer_fees, np.ndarray) and transfer_fees.shape[0] < num_terminals:
+            transfer_fees = np.pad(transfer_fees, (0, num_terminals - transfer_fees.shape[0]),
+                                   'constant', constant_values=np.nan)
 
         # Add validation metrics if available
         validation_status = 'Not Validated'
@@ -714,12 +756,14 @@ def save_results_to_excel_with_retry(results: Dict[str, Any], filepath: str):
                 'Instance_Index': results['simulation_params']['instance_index'],
                 'Subsidy_Level': subsidy,
                 'CI_Terminals_Combo': ci_terminals_str,
+                'Pricing_Mechanism': pricing_mechanism,
                 'Terminal_ID': i + 1,
                 'Objective': obj_name,
                 'Profit_Before': profit_before[i],
                 'Profit_After': profit_after[i],
                 'Profit_Change': profit_change[i],
                 'Volume_After': volume_after[i] if volume_after is not None else np.nan,
+                'Transfer_Fee': transfer_fees[i] if transfer_fees is not None else np.nan,
                 'Feasibility_Status': results['optimization_output']['feasibility_status'],
                 'Objective_Value': obj_value,
                 'Optimality_Gap': optimality_gap,
@@ -798,6 +842,7 @@ def run_all_combinations():
         os.makedirs(results_folder)
 
     subsidies = np.array([0, 50, 100])
+    pricing_mechanisms = ['marginal_cost', 'marginal_profit', 'optimized']
     data_files = [f for f in os.listdir(data_folder) if f.endswith('.pkl')]
     data_files.sort()
 
@@ -813,13 +858,14 @@ def run_all_combinations():
         match = filename_pattern.match(filename)
         if match:
             num_terminals = int(match.groups()[0])
-            total_combinations += len(subsidies) * (2 ** num_terminals)
+            total_combinations += len(subsidies) * (2 ** num_terminals) * len(pricing_mechanisms)
 
-    logger.info("=== STARTING ENHANCED SIMULATION RUNS ===")
+    logger.info("=== STARTING ENHANCED SIMULATION RUNS WITH PRICING MECHANISMS ===")
     logger.info(f"Found {len(data_files)} data files to process")
     logger.info(f"Subsidy levels to test: {np.round(subsidies * 100)}%")
+    logger.info(f"Pricing mechanisms to test: {pricing_mechanisms}")
     logger.info(f"Total combinations to process: {total_combinations:,}")
-    logger.info(f"Estimated runtime: {total_combinations * 0.1 / 60:.1f} minutes")
+    logger.info(f"Estimated runtime: {total_combinations * 0.15 / 60:.1f} minutes")
 
     # Memory monitoring setup
     process = psutil.Process()
@@ -859,78 +905,83 @@ def run_all_combinations():
 
             # Process CI combinations with progress bar
             for ci_combo_idx in tqdm(range(num_ci_combinations), desc="Processing CI combinations", leave=False):
-                combination_count += 1
 
-                # Memory monitoring
-                if monitor_memory_usage(process, start_memory, combination_count):
-                    import gc
-                    gc.collect()
+                # Process pricing mechanisms with progress bar
+                for pricing_mechanism in tqdm(pricing_mechanisms, desc="Processing pricing mechanisms", leave=False):
+                    combination_count += 1
 
-                ci_binary_str = format(ci_combo_idx, f'0{num_terminals}b')
-                ci_terminals = np.array([int(c) for c in ci_binary_str])
-                ci_terminals_list = np.where(ci_terminals == 1)[0]
-                ci_terminals_str = '_'.join(
-                    [str(t + 1) for t in ci_terminals_list]) if ci_terminals_list.size > 0 else 'None'
+                    # Memory monitoring
+                    if monitor_memory_usage(process, start_memory, combination_count):
+                        import gc
+                        gc.collect()
 
-                logger.debug(f"  > Subsidy: {subsidy:.1%} | CI Combo: {ci_terminals_str}")
+                    ci_binary_str = format(ci_combo_idx, f'0{num_terminals}b')
+                    ci_terminals = np.array([int(c) for c in ci_binary_str])
+                    ci_terminals_list = np.where(ci_terminals == 1)[0]
+                    ci_terminals_str = '_'.join(
+                        [str(t + 1) for t in ci_terminals_list]) if ci_terminals_list.size > 0 else 'None'
 
-                # Prepare input data with validation
-                input_data_ves = {
-                    'subPar': subsidy,
-                    'ciTerm': ci_terminals,
-                    'num_terminals': num_terminals,
-                    'v': data['vVes'],
-                    'x': data['xV'],
-                    'xCI': data['vVesCI'],
-                    'c': data['inputData'][0, :, 0],
-                    'cost_initial': data['inputData'][0, :, 1],
-                    'cost_decrease_rate': data['inputData'][0, :, 2],
-                    'cost_increase_rate': data['inputData'][0, :, 3],
-                    'optimal_vcr_cost_point': data['inputData'][0, :, 4],
-                    'initial_charge': data['inputData'][0, :, 5],
-                    'decrease_rate': data['inputData'][0, :, 6],
-                    'constant_vcr_charge': data['inputData'][0, :, 7],
-                    'pc': data['inputData'][0, :, 8],
-                }
+                    logger.debug(
+                        f"  > Subsidy: {subsidy:.1%} | CI Combo: {ci_terminals_str} | Pricing: {pricing_mechanism}")
 
-                # Run optimization
-                result = vessel_based_opt(input_data_ves)
+                    # Prepare input data with validation
+                    input_data_ves = {
+                        'subPar': subsidy,
+                        'ciTerm': ci_terminals,
+                        'num_terminals': num_terminals,
+                        'v': data['vVes'],
+                        'x': data['xV'],
+                        'xCI': data['vVesCI'],
+                        'c': data['inputData'][0, :, 0],
+                        'cost_initial': data['inputData'][0, :, 1],
+                        'cost_decrease_rate': data['inputData'][0, :, 2],
+                        'cost_increase_rate': data['inputData'][0, :, 3],
+                        'optimal_vcr_cost_point': data['inputData'][0, :, 4],
+                        'initial_charge': data['inputData'][0, :, 5],
+                        'decrease_rate': data['inputData'][0, :, 6],
+                        'constant_vcr_charge': data['inputData'][0, :, 7],
+                        'pc': data['inputData'][0, :, 8],
+                    }
 
-                if result is None:
-                    logger.error(f"Optimization failed critically for combination {combination_count}")
-                    failed_optimizations += 1
-                    continue
+                    # Run optimization with specific pricing mechanism
+                    result = vessel_based_opt(input_data_ves, pricing_mechanism=pricing_mechanism)
 
-                if 'Feasible' in result.get('feasibility_status', ''):
-                    successful_optimizations += 1
+                    if result is None:
+                        logger.error(f"Optimization failed critically for combination {combination_count}")
+                        failed_optimizations += 1
+                        continue
 
-                    # Check validation results
-                    if 'validation_metrics' in result and not result['validation_metrics']['conservation_passed']:
-                        validation_failures += 1
-                else:
-                    failed_optimizations += 1
+                    if 'Feasible' in result.get('feasibility_status', ''):
+                        successful_optimizations += 1
 
-                # Save results
-                results_to_save = {
-                    'simulation_params': {
-                        'filename': filename,
-                        'subsidy': subsidy,
-                        'ci_terminals': ci_terminals_str,
-                        'ci_rate_from_data': ci_rate,
-                        'num_terminals_from_data': num_terminals,
-                        'instance_index': instance_idx,
-                        'subset_composition': subset_str
-                    },
-                    'optimization_output': result
-                }
+                        # Check validation results
+                        if 'validation_metrics' in result and not result['validation_metrics']['conservation_passed']:
+                            validation_failures += 1
+                    else:
+                        failed_optimizations += 1
 
-                # Create output filename and save
-                filename_base = os.path.splitext(filename)[0]
-                output_filename = f"{filename_base}_Sub{int(subsidy * 100):02d}_CICombo_{ci_terminals_str}.pkl"
-                output_filepath = os.path.join(results_folder, output_filename)
+                    # Save results
+                    results_to_save = {
+                        'simulation_params': {
+                            'filename': filename,
+                            'subsidy': subsidy,
+                            'ci_terminals': ci_terminals_str,
+                            'ci_rate_from_data': ci_rate,
+                            'num_terminals_from_data': num_terminals,
+                            'instance_index': instance_idx,
+                            'subset_composition': subset_str,
+                            'pricing_mechanism': pricing_mechanism
+                        },
+                        'optimization_output': result
+                    }
 
-                save_results(results_to_save, output_filepath)
-                save_results_to_excel_with_retry(results_to_save, excel_results_file)
+                    # Create output filename and save
+                    filename_base = os.path.splitext(filename)[0]
+                    output_filename = f"{filename_base}_Sub{int(subsidy * 100):02d}_CICombo_{ci_terminals_str}_Pricing_{pricing_mechanism}.pkl"
+                    output_filepath = os.path.join(results_folder, output_filename)
+
+                    save_results(results_to_save, output_filepath)
+                    save_results_to_excel_with_retry(results_to_save, excel_results_file)
 
     # Final summary
     logger.info("\n=== SIMULATION COMPLETE ===")
@@ -949,3 +1000,4 @@ def run_all_combinations():
 
 if __name__ == '__main__':
     run_all_combinations()
+

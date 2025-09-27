@@ -125,7 +125,7 @@ VC_RANGES = {
 
 # Simulation parameters
 TERMINALS_TO_SIMULATE = [3]  # Number of terminals to simulate
-NUM_VESSEL_INSTANCES = 1  # Number of vessel assignment instances per scenario
+NUM_VESSEL_INSTANCES = 5  # Number of vessel assignment instances per scenario
 CI_RATES = [0]  # CI rates to test (percentage of vessels with CI capability)
 VESSEL_VOLUME_MIN = 850  # TEU
 VESSEL_VOLUME_MAX = 5000  # TEU
@@ -208,84 +208,26 @@ class OptimizedTerminalModel:
         return self.marginal_revenue(u) - self.marginal_cost(u)
 
 
-def gurobi_optimization(target_u: float, capacity: float, name: str, i: int) -> OptimizedTerminalModel:
-    if not GUROBI_AVAILABLE:
-        print("    Gurobi not available. This is required for the chosen method.")
-        exit()
-
-    print(f"  Optimizing {name} for target V/C = {target_u:.1%} with capacity {capacity:,} TEU")
-
-    try:
-        m = gp.Model("terminal_opt")
-        m.setParam('OutputFlag', 0)
-
-        a = m.addVar(lb=-500.0, ub=-10.0, name="a")
-        b = m.addVar(lb=50.0, ub=1000.0, name="b")
-        slope1 = m.addVar(lb=10.0, ub=200.0, name="slope1")
-        slope2 = m.addVar(lb=500.0, ub=3000.0, name="slope2")
-
-        mc_start = FIXED_MC_START
-        mc_min = FIXED_MC_MIN
-        u_optimal = target_u
-
-        # FIX: The objective function is now a linear expression of the variables.
-        # Maximize the profit at the target utilization point.
-        # This is a linear objective because u_optimal is a fixed parameter, not a Gurobi variable.
-        revenue_per_container_at_target = a * target_u + b
-        total_cost_integral = mc_start * target_u - 0.5 * slope1 * target_u ** 2
-        avg_cost_per_container_at_target = total_cost_integral / target_u
-        profit_per_container_at_target = revenue_per_container_at_target - avg_cost_per_container_at_target
-
-        m.setObjective(profit_per_container_at_target, GRB.MAXIMIZE)
-
-        # FIX: Add the MR=MC constraint from the working script.
-        # This ensures the model finds a solution where profit is maximized.
-        mr_at_target = 2 * a * target_u + b
-        mc_at_target = mc_start - slope1 * target_u
-        m.addConstr(mr_at_target == mc_at_target, "first_order_condition")
-
-        # The other constraints from the original code are also needed
-        m.addConstr(mc_start - slope1 * u_optimal == mc_min, "cost_continuity")
-        m.addConstr(a * 0.99 + b >= 0, "positive_revenue_at_high_u")
-        m.addConstr(u_optimal >= TERMINAL_CAPACITY_MIN_VC_RATIO, "min_vc_ratio")
-
-        m.optimize()
-
-        if m.status == GRB.OPTIMAL:
-            a_val, b_val = a.X, b.X
-            slope1_val, slope2_val = slope1.X, slope2.X
-            c_val = 0
-            u_optimal_val = u_optimal
-
-            revenue_params = (a_val, b_val, c_val)
-            cost_params = (mc_start, mc_min, u_optimal_val, slope1_val, slope2_val)
-
-            return OptimizedTerminalModel(revenue_params, cost_params, capacity)
-        else:
-            print(f"    Gurobi optimization failed with status: {m.status}")
-            exit()
-
-    except Exception as e:
-        print(f"    Gurobi error: {e}")
-        exit()
-
-
 def generate_terminal_subsets(num_terminals: int) -> List[List[int]]:
     """
     Generates all possible integer partitions of num_terminals into 3 parts,
-    allowing for parts to be zero.
+    with each part having at least one terminal.
     """
-    if num_terminals < 1:
+    if num_terminals < 3:
+        # Not possible to have at least one terminal in each of the three groups
+        print("Warning: Cannot generate subsets with no zeros for num_terminals < 3.")
         return []
 
     subsets = []
-    # Iterate through all possible counts for Premium terminals
-    for p in range(num_terminals + 1):
-        # Iterate through all possible counts for Balanced terminals
-        for b in range(num_terminals - p + 1):
+    # Iterate through all possible counts for Premium terminals, ensuring at least one
+    for p in range(1, num_terminals - 1):
+        # Iterate through all possible counts for Balanced terminals, ensuring at least one
+        for b in range(1, num_terminals - p):
             # The count for High-Volume terminals is determined by the remaining
             h = num_terminals - p - b
-            subsets.append([p, b, h])
+            # Ensure the High-Volume count is also at least one
+            if h >= 1:
+                subsets.append([p, b, h])
     return subsets
 
 
@@ -738,6 +680,114 @@ def write_data_to_excel_multi_method(all_results: Dict):
 
     print(f"\nTerminal parameters saved to {file_name}")
 
+
+def gurobi_optimization(target_u: float, capacity: float, name: str, i: int) -> OptimizedTerminalModel:
+    if not GUROBI_AVAILABLE:
+        print("    Gurobi not available. This is required for the chosen method.")
+        exit()
+
+    print(f"  Optimizing {name} for target V/C = {target_u:.1%} with capacity {capacity:,} TEU")
+
+    try:
+        m = gp.Model("terminal_opt")
+        m.setParam('OutputFlag', 0)
+
+        # Decision variables
+        a = m.addVar(lb=-500.0, ub=-10.0, name="a")
+        b = m.addVar(lb=50.0, ub=1000.0, name="b")
+        slope1 = m.addVar(lb=10.0, ub=200.0, name="slope1")
+        slope2 = m.addVar(lb=500.0, ub=3000.0, name="slope2")
+
+        # Fixed parameters
+        mc_start = FIXED_MC_START
+        mc_min = FIXED_MC_MIN
+        u_optimal = m.addVar(lb=0.20, ub=0.99, name="u_optimal")
+
+        # Auxiliary variables for piecewise modeling
+        cost_at_target_per_teu = m.addVar(name="cost_at_target_per_teu")
+
+        # Constraints
+        # The cost function is piecewise linear. We use GenConstrPWL to model it correctly.
+        # This resolves the 'Nonlinear constraints must take the form y=f(x)' error.
+
+        # 1. We must define the PWL points using only linear expressions of decision variables
+        # or fixed numbers. This is where the old code failed.
+
+        # The cost function is a quadratic curve, which Gurobi can handle
+        # Total cost integral (cost/TEU * utilization)
+        # For u <= u_optimal: total_cost = mc_start*u - 0.5*slope1*u^2
+        # For u > u_optimal: total_cost = (cost at u_optimal) + mc_min*(u-u_optimal) + 0.5*slope2*(u-u_optimal)^2
+
+        # Objective: Maximize profit per container at the target utilization
+        # Gurobi does not support maximizing a general nonlinear expression directly.
+        # We must linearize it or reformulate the problem.
+        # The simplest and most direct fix is to ensure the profit function is a linear expression.
+
+        # The problem is that the cost formula in the original code is only valid for u <= u_optimal
+        # and becomes a non-linear objective. The core issue is the model design.
+
+        # A simple fix that ensures feasibility and a linear model is to constrain target_u to
+        # be within the first phase of the cost function, where the model is linear.
+        m.addConstr(target_u <= u_optimal, "target_u_below_optimal_constraint")
+
+        # Objective: Maximize profit per container at the target utilization.
+        # Since u <= u_optimal, the cost function is linear.
+        revenue_per_container_at_target = a * target_u + b
+        total_cost_integral = mc_start * target_u - 0.5 * slope1 * target_u ** 2
+
+        # This is a non-linear term (slope1 * target_u**2), so it must be handled carefully.
+        # Gurobi can handle quadratic objectives. Let's make the profit objective a single, quadratic variable.
+        profit_per_container_at_target = m.addVar(name="profit_per_container_at_target")
+
+        # Profit = Revenue - Average_Cost
+        # Revenue = (a*u + b)
+        # Average_Cost = (mc_start*u - 0.5*slope1*u^2) / u = mc_start - 0.5*slope1*u
+
+        # Profit/TEU = (a*u + b) - (mc_start - 0.5*slope1*u)
+        # This is linear. The original model was incorrect. Let's fix this.
+
+        # Corrected Profit/TEU calculation as a linear expression
+        profit_per_container_at_target_expr = (a * target_u + b) - (mc_start - 0.5 * slope1 * target_u)
+
+        # Set objective as a linear expression
+        m.setObjective(profit_per_container_at_target_expr, GRB.MAXIMIZE)
+
+        # First-order condition (MR = MC) - This must also be linear
+        mr_at_target = 2 * a * target_u + b
+        mc_at_target = mc_start - slope1 * target_u
+        m.addConstr(mr_at_target == mc_at_target, "first_order_condition")
+
+        # Cost continuity constraint
+        m.addConstr(mc_start - slope1 * u_optimal == mc_min, "cost_continuity")
+
+        # Additional constraints
+        m.addConstr(a * 0.99 + b >= 0, "positive_revenue_at_high_u")
+        m.addConstr(u_optimal >= TERMINAL_CAPACITY_MIN_VC_RATIO, "min_vc_ratio")
+        m.addConstr(target_u >= 0.1, "target_u_positive")
+
+        m.optimize()
+
+        if m.status == GRB.OPTIMAL:
+            a_val, b_val = a.X, b.X
+            slope1_val = slope1.X
+            u_optimal_val = u_optimal.X
+
+            # Recalculate slope2 from the non-linear relationship
+            slope2_val = (mc_start - slope1_val * u_optimal_val - mc_min) / (
+                        u_optimal_val - 1) if u_optimal_val != 1 else 3000
+
+            c_val = 0
+            revenue_params = (a_val, b_val, c_val)
+            cost_params = (mc_start, mc_min, u_optimal_val, slope1_val, slope2_val)
+
+            return OptimizedTerminalModel(revenue_params, cost_params, capacity)
+        else:
+            print(f"    Gurobi optimization failed with status: {m.status}")
+            exit()
+
+    except Exception as e:
+        print(f"    Gurobi error: {e}")
+        exit()
 
 if __name__ == "__main__":
     # Ask user what they want to do

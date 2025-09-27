@@ -1,0 +1,22 @@
+2025-09-27 15:15:21,373 - INFO - === STARTING GUROBI UNIFIED SIMULATION ===
+2025-09-27 15:15:21,449 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 15:15:21,449 - INFO - Running Gurobi optimization with pricing mechanism: marginal_profit
+2025-09-27 15:15:21,467 - INFO - Set parameter Username
+2025-09-27 15:15:21,467 - INFO - Set parameter LicenseID to value 2692892
+2025-09-27 15:15:21,469 - INFO - Academic license - for non-commercial use only - expires 2026-07-31
+2025-09-27 15:15:22,282 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 15:15:25,190 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 15:15:25,207 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 15:15:25,208 - INFO - Running Gurobi optimization with pricing mechanism: marginal_cost
+2025-09-27 15:15:31,326 - WARNING - Gurobi optimization MAXPROF failed with status: 11
+2025-09-27 15:20:31,532 - WARNING - Gurobi optimization MAXMIN failed with status: 9
+2025-09-27 15:20:31,595 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 15:20:31,595 - INFO - Running Gurobi optimization with pricing mechanism: optimized
+2025-09-27 15:20:33,106 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 15:20:38,156 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 15:20:38,174 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 15:20:38,175 - INFO - Running Gurobi optimization with pricing mechanism: marginal_profit
+2025-09-27 15:20:38,866 - INFO - Gurobi optimization MAXPROF completed successfully
+2025-09-27 15:20:42,141 - INFO - Gurobi optimization MAXMIN completed successfully
+2025-09-27 15:20:42,157 - INFO - Current state validation complete. All constraints satisfied.
+2025-09-27 15:20:42,157 - INFO - Running Gurobi optimization with pricing mechanism: marginal_cost

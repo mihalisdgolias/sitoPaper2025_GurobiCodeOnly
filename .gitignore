@@ -6,3 +6,5 @@
 \simulation_results_linear_cost
 \linear_optimization_analysis
 \marginal_cost_analysis
+\simulation_results_gurobi_unified
+\plotsTestModelFunctions
